@@ -1,0 +1,91 @@
+import random
+
+N = 3
+
+goal_state = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 0]
+]
+
+class PuzzleState:
+    def __init__(self, state, cost):
+        self.state = state
+        self.cost = cost
+
+def calculate_cost(state):
+    cost = 0
+    for i in range(N):
+        for j in range(N):
+            if state[i][j] != goal_state[i][j] and state[i][j] != 0:
+                cost += 1
+    return cost
+
+def print_state(state):
+    for i in range(N):
+        print(" ".join(map(str, state[i])))
+    print()
+
+def generate_neighbor(state, row, col, new_row, new_col):
+    neighbor = [row[:] for row in state]
+    neighbor[row][col], neighbor[new_row][new_col] = neighbor[new_row][new_col], neighbor[row][col]
+    return neighbor
+
+def hill_climbing(initial, max_iterations):
+    current = PuzzleState(initial, calculate_cost(initial))
+    iterations = 0
+    
+    print("Initial State:")
+    print_state(current.state)
+    print("----------------------------------------")
+    
+    while iterations < max_iterations:
+        best_neighbor = []
+        best_neighbor_cost = current.cost
+        
+        for row in range(N):
+            for col in range(N):
+                if current.state[row][col] == 0:
+                    moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
+                    
+                    for move in moves:
+                        new_row, new_col = row + move[0], col + move[1]
+                        
+                        if 0 <= new_row < N and 0 <= new_col < N:
+                            neighbor_state = generate_neighbor(current.state, row, col, new_row, new_col)
+                            neighbor_cost = calculate_cost(neighbor_state)
+                            
+                            if neighbor_cost < best_neighbor_cost:
+                                best_neighbor = neighbor_state
+                                best_neighbor_cost = neighbor_cost
+        
+        if best_neighbor_cost >= current.cost:
+            break  # No better neighbor found, exit
+        
+        current.state = best_neighbor
+        current.cost = best_neighbor_cost
+        
+        iterations += 1
+        
+        print(f"Iteration {iterations} - Cost: {best_neighbor_cost}")
+        print_state(current.state)
+        print("----------------------------------------")
+    
+    return current
+
+if __name__ == "__main__":
+    random.seed()
+    
+    initial_state = [
+        [4, 1, 3],
+        [7, 2, 6],
+        [0, 5, 8]
+    ]
+    print("Initial State Cost:", calculate_cost(initial_state))  # Calculate and print the cost
+    print("----------------------------------------")
+    
+    final_puzzle_state = hill_climbing(initial_state, 100)
+    
+    print("Final State:")
+    print_state(final_puzzle_state.state)
+    print("Cost:", final_puzzle_state.cost)

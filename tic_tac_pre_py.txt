@@ -1,0 +1,104 @@
+class TicTacToeAI:
+    def play(self):
+        a = [""] * 9
+        int_a = [0] * 9
+        computing_scores = [0] * 9
+        i, count1, count2, count0 = 0, 0, 0, 0
+
+        print("Enter input data: ")
+        for i in range(9):
+            a[i] = input()
+
+        print("Tictactoe vector [", end="")
+        for i in range(9):
+            if a[i] == "X":
+                a[i] = "1"
+            elif a[i] == "O":
+                a[i] = "2"
+            print(f" {a[i]}", end="")
+        print("]")
+
+        for i in range(9):
+            int_a[i] = int(a[i])
+            if int_a[i] == 1:
+                count1 += 1
+            elif int_a[i] == 2:
+                count2 += 1
+            else:
+                count0 += 1
+
+        if abs(count1 - count2) <= 1:
+            print("Valid!")
+        else:
+            print("Invalid!!")
+            exit(0)
+
+        print("Possible Moves = ")
+        if count1 <= count2:
+            print("Predicting for X turn")
+            self.predict_turn(1, int_a, computing_scores)
+        else:
+            print("Predicting O turn")
+            self.predict_turn(2, int_a, computing_scores)
+
+        # Output computing scores
+        print("Computing Scores for each position: ")
+        for i in range(9):
+            if int_a[i] == 0:
+                print(f"Position {i + 1}: {computing_scores[i]}")
+
+    @staticmethod
+    def predict_turn(player, int_a, computing_scores):
+        for i in range(9):
+            if int_a[i] == 0:
+                # 0 means move is possible
+                copy_int_a = int_a.copy()  # creating a copy of the current state
+                copy_int_a[i] = player  # where there is 0 put X
+                TicTacToeAI.print_matrix(copy_int_a)
+
+                row_counter = sum([TicTacToeAI.check_row(copy_int_a, j) for j in range(3)])
+                col_counter = sum([TicTacToeAI.check_column(copy_int_a, j) for j in range(3)])
+                diag_counter = 1 if TicTacToeAI.check_diagonal(copy_int_a) else 0
+
+                computing_scores[i] = row_counter + col_counter + diag_counter
+
+    @staticmethod
+    def print_matrix(array):
+        for i in range(9):
+            if array[i] == 1:
+                print("X ", end="")
+            elif array[i] == 2:
+                print("O ", end="")
+            else:
+                print("0 ", end="")
+            if (i + 1) % 3 == 0:  # adding a new line character at the end of each row
+                print("\n", end="")
+        print("\n")
+
+    @staticmethod
+    def check_row(array, row):
+        start = row * 3
+        value = array[start]
+        if value == 0:  # return false when the value is 0 as no win
+            return False
+
+        return all(array[i] == value for i in range(start + 1, start + 3))
+
+    @staticmethod
+    def check_column(array, col):
+        start = col
+        value = array[start]
+        if value == 0:
+            return False
+
+        return all(array[i] == value for i in range(start + 3, start + 7, 3))
+
+    @staticmethod
+    def check_diagonal(array):
+        return (array[0] != 0 and array[0] == array[4] and array[0] == array[8]) or \
+               (array[2] != 0 and array[2] == array[4] and array[2] == array[6])
+
+
+if __name__ == "__main__":
+    game = TicTacToeAI()
+    game.play()

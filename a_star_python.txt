@@ -1,0 +1,136 @@
+class Node:
+    def __init__(self):
+        self.parent = None
+        self.cost = 0
+        self.hval = 0
+        self.board = []
+        self.children = []
+
+    def hfun(self, goal):
+        count = 0
+        for i in range(3):
+            for j in range(3):
+                if self.board[i][j] != goal.board[i][j]:
+                    count += 1
+        self.hval = count
+
+    def print_board(self):
+        for i in range(3):
+            print(" ".join(map(str, self.board[i])))
+        print()
+
+    def generate_children(self, x, y, goal):
+        directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+        for dx, dy in directions:
+            if 0 <= x + dx < 3 and 0 <= y + dy < 3:
+                child = Node()
+                child.parent = self
+                child.board = [row[:] for row in self.board]
+                child.cost = self.cost + 1
+                child.board[x][y], child.board[x + dx][y + dy] = child.board[x + dx][y + dy], child.board[x][y]
+                child.hfun(goal)
+                self.children.append(child)
+
+
+class Position:
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+
+    def zero_position(self, temp):
+        for i in range(3):
+            for j in range(3):
+                if temp[i][j] == 0:
+                    self.x, self.y = i, j
+                    return
+
+
+def print_list(lst, list_type):
+    print(f"{list_type} List")
+    for i in range(3):
+        for node in lst:
+            print(" ".join(map(str, node.board[i])), end="   ")
+        print()
+    print("***************************************")
+
+
+def main():
+    # Goal State
+    goal = Node()
+    goal.board = [[1, 2, 3], [8, 0, 4], [7, 6, 5]]
+    goal.hval = 0
+
+    # Initial State
+    initial = Node()
+    initial.board = [[2, 8, 3], [1, 6, 4], [7, 0, 5]]
+    initial.hfun(goal)
+    initial.parent = None
+    initial.cost = 0
+
+    min_f = float('inf')
+    curr = Position()  # empty tile position
+    parent, child = Node(), Node()
+
+    open_list = [initial]
+    closed_list = []
+
+    # Push Initial Node in Open List
+    print_list(open_list, "OPEN")
+    print_list(closed_list, "CLOSED")
+
+    while open_list:
+        # Pick Node with Least f value
+        min_f = float('inf')
+        min_idx = 0
+        for i, node in enumerate(open_list):
+            if node.cost + node.hval < min_f:
+                min_f = node.cost + node.hval
+                min_idx = i
+
+        # Pop Node with least f-value
+        parent = open_list.pop(min_idx)
+
+        # Generate Child Nodes of Parent Node
+        curr.zero_position(parent.board)
+        parent.generate_children(curr.x, curr.y, goal)
+        goal_flag = False
+        closed_list.append(parent)
+
+        # Evaluate each successor of parent
+        for child in parent.children:
+            child.print_board()
+            if child.board == goal.board:
+                print("\nGoal Reached")
+                print("Cost  =", child.cost)
+                closed_list.append(child)
+                goal_flag = True
+                break
+
+            min_f = child.hval + child.cost
+            flag = True
+
+            # Check for child node in Open List with the same position with lower cost
+            for j, node in enumerate(open_list):
+                if child.board == node.board and child.cost < node.cost:
+                    open_list[j] = child
+                    break
+
+            # Check for child node in Closed List with the same position with lower cost
+            for j, node in enumerate(closed_list):
+                if child.board == node.board and child.cost > node.cost:
+                    flag = False
+                    break
+
+            if flag:
+                open_list.append(child)
+
+        print("*****************************")
+        print_list(open_list, "OPEN")
+        print_list(closed_list, "CLOSED")
+
+        if goal_flag:
+            break
+
+
+if __name__ == "__main__":
+    main()
